@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.test import TestCase
 
-from .models import Question
+from .models import Question, Choice
 
 class QuestionMethodTests(TestCase):
 
@@ -35,15 +35,22 @@ class QuestionMethodTests(TestCase):
         recent_question = Question(pub_date=time)
         self.assertIs(recent_question.was_published_recently(), True)
 
-def create_question(question_text, days):
+def create_question(question_text, days, choices=None):
     """
     Creates a question with the given `question_text` and published the
     given number of `days` offset to now (negative for questions published
     in the past, positive for questions that have yet to be published).
     """
     time = timezone.now() + datetime.timedelta(days=days)
-    return Question.objects.create(question_text=question_text, pub_date=time)
+    q = Question.objects.create(question_text=question_text, pub_date=time)
 
+    if type(choices) == type([]):
+       for choice in choices:
+           Choice.objects.create(question=q, choice_text=choice)
+    else:
+       Choice.objects.create(question=q, choice_text='default choice')
+
+    return q
 
 class QuestionViewTests(TestCase):
     def test_index_view_with_no_questions(self):
@@ -100,6 +107,18 @@ class QuestionViewTests(TestCase):
         self.assertQuerysetEqual(
             response.context['latest_question_list'],
             ['<Question: Past question 2.>', '<Question: Past question 1.>']
+        )
+
+    def test_index_view_with_question_without_choices(self):
+        """
+        Question without choices must not be listed on index page
+        """
+        create_question(question_text="Question with choices", days=-1, choices=[ 'choice 1', 'choice 2' ])
+        create_question(question_text="Question without choices", days=-1, choices=[])
+        response = self.client.get(reverse('polls:index'))
+        self.assertQuerysetEqual(
+            response.context['latest_question_list'],
+            ['<Question: Question with choices>']
         )
 
 class QuestionIndexDetailTests(TestCase):
