@@ -50,8 +50,7 @@ def vote(request, question_id):
             'error_message': "Incorrect choice number {0} was received.".format(request.POST['choice']),
         })
     else:
-        selected_choice.votes += 1
-        selected_choice.save()
+        selected_choice.vote()
         # Always return an HttpResponseRedirect after successfully dealing
         # with POST data. This prevents data from being posted twice if a
         # user hits the Back button.
