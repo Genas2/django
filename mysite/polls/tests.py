@@ -48,7 +48,8 @@ def create_question(question_text, days, choices=None):
        for choice in choices:
            Choice.objects.create(question=q, choice_text=choice)
     else:
-       Choice.objects.create(question=q, choice_text='default choice')
+       Choice.objects.create(question=q, choice_text='default choice1')
+       Choice.objects.create(question=q, choice_text='default choice2')
 
     return q
 
@@ -109,11 +110,12 @@ class QuestionViewTests(TestCase):
             ['<Question: Past question 2.>', '<Question: Past question 1.>']
         )
 
-    def test_index_view_with_question_without_choices(self):
+    def test_index_view_with_question_without_enough_choices(self):
         """
         Question without choices must not be listed on index page
         """
         create_question(question_text="Question with choices", days=-1, choices=[ 'choice 1', 'choice 2' ])
+        create_question(question_text="Question with one choice", days=-1, choices=[ 'choice 1' ])
         create_question(question_text="Question without choices", days=-1, choices=[])
         response = self.client.get(reverse('polls:index'))
         self.assertQuerysetEqual(

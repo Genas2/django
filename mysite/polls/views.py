@@ -13,7 +13,7 @@ class IndexView(generic.ListView):
     def get_queryset(self):
         """Return the last five published questions."""
         return [ q for q in filter(
-                lambda q: q.choice_set.count() > 0, 
+                lambda q: q.choice_set.count() > 1, 
                 Question.objects.filter(
                     pub_date__lte=timezone.now()
                 ).order_by('-pub_date')[:5]
@@ -50,8 +50,7 @@ def vote(request, question_id):
             'error_message': "Incorrect choice number {0} was received.".format(request.POST['choice']),
         })
     else:
-        selected_choice.votes += 1
-        selected_choice.save()
+        selected_choice.vote()
         # Always return an HttpResponseRedirect after successfully dealing
         # with POST data. This prevents data from being posted twice if a
         # user hits the Back button.

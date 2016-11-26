@@ -7,6 +7,7 @@ class Question(models.Model):
     question_text = models.CharField(max_length=200)
     created = models.DateTimeField('creation date', auto_now_add=True)
     pub_date = models.DateTimeField('date published')
+    last_vote_date = models.DateTimeField('last vote date', auto_now=True)
 
     def __str__(self):
         return self.question_text
@@ -24,6 +25,13 @@ class Choice(models.Model):
 
     def __str__(self):
         return self.choice_text
+
+    def vote(self):
+        self.votes += 1
+        self.last_vote_date = timezone.now()
+        self.question.last_vote_date = self.last_vote_date
+        self.question.save()
+        self.save()
 
 class Tip(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
